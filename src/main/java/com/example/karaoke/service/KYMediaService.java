@@ -1,7 +1,6 @@
 package com.example.karaoke.service;
 
 import com.example.karaoke.dto.SongDTO;
-import com.example.karaoke.dto.TJSearchDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -14,28 +13,28 @@ import java.util.List;
 
 @Slf4j
 @Service
-public class TJMediaService implements Media {
+public class KYMediaService implements Media {
 
-    final static String TJ_MEDIA_URL = "https://www.tjmedia.com/tjsong/song_search_list.asp"; // strCond=0&strType=1&strText=노을&intPage=4
+    final static String KY_MEDIA_URL = "https://kysing.kr/search"; // /?category=2&keyword=노을&s_page=4
 
     @Override
     public List<SongDTO> searchSong(String category, String keyword, Integer page) {
         List<SongDTO> list = new ArrayList<>();
 
         try {
-            StringBuilder option = new StringBuilder("?strCond=0");
+            StringBuilder option = new StringBuilder();
 
             if(category.equals("title")) {
-                option.append("&strType=1");
+                option.append("/?category=2");
             }else if(category.equals("singer")) {
-                option.append("&strType=2");
+                option.append("/?category=7");
             }
 
-            option.append("&strText=").append(keyword).append("&intPage=").append(page);
+            option.append("&keyword=").append(keyword).append("&s_page=").append(page);
 
-            Document doc = Jsoup.connect(TJ_MEDIA_URL + option).get();
+            Document doc = Jsoup.connect(KY_MEDIA_URL + option).get();
 
-            Elements elements = doc.select("form > div#BoardType1 > table.board_type1 > tbody > tr");
+            Elements elements = doc.select("div.search_daily_chart_wrap > ul.search_chart_list.clear");
 
             if(!elements.isEmpty()) {
                 elements.remove(0);
@@ -43,11 +42,11 @@ public class TJMediaService implements Media {
 
             for(Element e : elements) {
                 SongDTO song = new SongDTO();
-                song.no = Integer.valueOf(e.child(0).text());
-                song.title = e.child(1).text();
-                song.singer = e.child(2).text();
-                song.lyrics = e.child(3).text();
+                song.no = Integer.valueOf(e.child(1).text());
+                song.title = e.child(2).select("span").get(0).text();
+                song.singer = e.child(3).text();
                 song.music = e.child(4).text();
+                song.lyrics = e.child(6).text();
 
                 list.add(song);
             }

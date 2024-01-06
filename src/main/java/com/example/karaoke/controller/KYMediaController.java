@@ -1,8 +1,8 @@
 package com.example.karaoke.controller;
 
+import com.example.karaoke.dto.KYSearchDTO;
 import com.example.karaoke.dto.SongDTO;
-import com.example.karaoke.dto.TJSearchDTO;
-import com.example.karaoke.service.TJMediaService;
+import com.example.karaoke.service.KYMediaService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,17 +15,16 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("v1/api/tj")
-public class TJMediaController {
+@RequestMapping("v1/api/ky")
+public class KYMediaController {
 
     @Autowired
-    TJMediaService tjMediaService;
+    KYMediaService kyMediaService;
 
     @GetMapping("searchSong")
-    public List<SongDTO> searchSong(@RequestBody @Valid TJSearchDTO tjSearchDTO) {
-        log.debug("tjSearchDTO : [{}]", tjSearchDTO);
+    public List<SongDTO> searchSong(@RequestBody @Valid KYSearchDTO kySearchDTO) {
+        log.debug("kySearchDTO : [{}]", kySearchDTO);
 
-        return tjMediaService.searchSong(tjSearchDTO.category, tjSearchDTO.keyword, tjSearchDTO.page);
+        return kyMediaService.searchSong(kySearchDTO.category, kySearchDTO.keyword, kySearchDTO.page);
     }
-
 }
