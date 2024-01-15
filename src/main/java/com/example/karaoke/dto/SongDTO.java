@@ -1,5 +1,8 @@
 package com.example.karaoke.dto;
 
+import lombok.ToString;
+
+@ToString
 public class SongDTO {
     public Integer no; // 곡 번호
     public String title; // 곡 제목

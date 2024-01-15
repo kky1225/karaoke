@@ -8,4 +8,6 @@ public interface Media {
 
     List<SongDTO> searchSong(String category, String keyword, Integer page);
 
+    List<SongDTO> searchSong(String category, String keyword);
+
 }

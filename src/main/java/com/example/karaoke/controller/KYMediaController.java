@@ -25,6 +25,10 @@ public class KYMediaController {
     public List<SongDTO> searchSong(@RequestBody @Valid KYSearchDTO kySearchDTO) {
         log.debug("kySearchDTO : [{}]", kySearchDTO);
 
+        if(kySearchDTO.page == null) {
+            return kyMediaService.searchSong(kySearchDTO.category, kySearchDTO.keyword);
+        }
+
         return kyMediaService.searchSong(kySearchDTO.category, kySearchDTO.keyword, kySearchDTO.page);
     }
 }

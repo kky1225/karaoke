@@ -25,6 +25,10 @@ public class TJMediaController {
     public List<SongDTO> searchSong(@RequestBody @Valid TJSearchDTO tjSearchDTO) {
         log.debug("tjSearchDTO : [{}]", tjSearchDTO);
 
+        if(tjSearchDTO.page == null) {
+            return tjMediaService.searchSong(tjSearchDTO.category, tjSearchDTO.keyword);
+        }
+
         return tjMediaService.searchSong(tjSearchDTO.category, tjSearchDTO.keyword, tjSearchDTO.page);
     }
 
