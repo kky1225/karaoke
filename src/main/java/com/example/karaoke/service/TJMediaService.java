@@ -1,7 +1,6 @@
 package com.example.karaoke.service;
 
 import com.example.karaoke.dto.SongDTO;
-import com.example.karaoke.dto.TJSearchDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -43,7 +42,7 @@ public class TJMediaService implements Media {
 
             for(Element e : elements) {
                 SongDTO song = new SongDTO();
-                song.no = Integer.valueOf(e.child(0).text());
+                song.no = e.child(0).text();
                 song.title = e.child(1).text();
                 song.singer = e.child(2).text();
                 song.lyrics = e.child(3).text();
@@ -64,35 +63,32 @@ public class TJMediaService implements Media {
         List<SongDTO> list = new ArrayList<>();
 
         try {
-            StringBuilder option = new StringBuilder("?strCond=0");
+            StringBuilder option = new StringBuilder("?strType=");
 
             if(category.equals("title")) {
-                option.append("&searchOrderItem=index_title&searchOrderType=up&strType=1&strSize01=15");
+                option.append("1");
             }else if(category.equals("singer")) {
-                option.append("&searchOrderItem=index_title&searchOrderType=up&strType=2&strSize02=15");
+                option.append("2");
             }
+
+            option.append("&natType=").append("&strText=").append(keyword).append("&strCond=0&searchOrderType=up&searchOrderItem=index_title&intPage=");
 
             int pageNo = 1;
 
-            option.append("&strText=").append(keyword).append("&intPage=");
-
-            searchMusic:
             while (true) {
-                Document doc = Jsoup.connect(TJ_MEDIA_URL + option + pageNo).get();
+                Document doc = Jsoup.connect(TJ_MEDIA_URL + option + pageNo++).get();
 
                 Elements elements = doc.select("table.board_type1 > tbody > tr");
 
-                if(!elements.isEmpty()) {
-                    elements.remove(0);
+                elements.remove(0);
+
+                if(elements.get(0).childrenSize() == 1) {
+                    break;
                 }
 
                 for(Element e : elements) {
-                    if(e.childrenSize() < 2) {
-                        break searchMusic;
-                    }
-
                     SongDTO song = new SongDTO();
-                    song.no = Integer.valueOf(e.child(0).text());
+                    song.no = e.child(0).text();
                     song.title = e.child(1).text();
                     song.singer = e.child(2).text();
                     song.lyrics = e.child(3).text();
@@ -101,7 +97,9 @@ public class TJMediaService implements Media {
                     list.add(song);
                 }
 
-                pageNo++;
+                if(elements.size() < 15) {
+                    break;
+                }
             }
         }catch (Exception e) {
             System.out.println("파싱 중 오류 발생!");

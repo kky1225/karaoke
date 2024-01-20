@@ -42,7 +42,7 @@ public class KYMediaService implements Media {
 
             for(Element e : elements) {
                 SongDTO song = new SongDTO();
-                song.no = Integer.valueOf(e.child(1).text());
+                song.no = e.child(1).text();
                 song.title = e.child(2).select("span").get(0).text();
                 song.singer = e.child(3).text();
                 song.music = e.child(4).text();
@@ -88,7 +88,7 @@ public class KYMediaService implements Media {
 
                 for(Element e : elements) {
                     SongDTO song = new SongDTO();
-                    song.no = Integer.valueOf(e.child(1).text());
+                    song.no = e.child(1).text();
                     song.title = e.child(2).select("span").get(0).text();
                     song.singer = e.child(3).text();
                     song.music = e.child(4).text();
@@ -107,5 +107,4 @@ public class KYMediaService implements Media {
 
         return list;
     }
-
 }
