@@ -15,7 +15,7 @@ import java.util.List;
 @Service
 public class TJMediaService implements Media {
 
-    final static String TJ_MEDIA_URL = "https://www.tjmedia.com/tjsong/song_search_list.asp"; // strCond=0&strType=1&strText=노을&intPage=4
+    final static String TJ_MEDIA_URL = "https://www.tjmedia.com/tjsong/song_search_list.asp";
 
     @Override
     public List<SongDTO> searchSong(String category, String keyword, Integer page) {
@@ -34,7 +34,7 @@ public class TJMediaService implements Media {
 
             Document doc = Jsoup.connect(TJ_MEDIA_URL + option).get();
 
-            Elements elements = doc.select("form > div#BoardType1 > table.board_type1 > tbody > tr");
+            Elements elements = doc.select("table.board_type1 > tbody > tr");
 
             if(!elements.isEmpty()) {
                 elements.remove(0);
@@ -57,21 +57,13 @@ public class TJMediaService implements Media {
         return list;
     }
 
-    //TODO 시간이 너무 오래 걸리는 문제 (가수, 먼데이키즈 기준 평균 15초)
+    //TODO 시간이 너무 오래 걸리는 문제 (가수, 먼데이키즈 기준 평균 12초)
     @Override
     public List<SongDTO> searchSong(String category, String keyword) {
         List<SongDTO> list = new ArrayList<>();
 
         try {
-            StringBuilder option = new StringBuilder("?strType=");
-
-            if(category.equals("title")) {
-                option.append("1");
-            }else if(category.equals("singer")) {
-                option.append("2");
-            }
-
-            option.append("&natType=").append("&strText=").append(keyword).append("&strCond=0&searchOrderType=up&searchOrderItem=index_title&intPage=");
+            StringBuilder option = getUrlParam(category, keyword);
 
             int pageNo = 1;
 
@@ -106,6 +98,20 @@ public class TJMediaService implements Media {
         }
 
         return list;
+    }
+
+    private StringBuilder getUrlParam(String category, String keyword) {
+        StringBuilder option = new StringBuilder("?strType=");
+
+        if(category.equals("title")) {
+            option.append("1");
+        }else if(category.equals("singer")) {
+            option.append("2");
+        }
+
+        option.append("&natType=").append("&strText=").append(keyword).append("&strCond=0&searchOrderType=up&searchOrderItem=index_title&intPage=");
+
+        return option;
     }
 
 }
