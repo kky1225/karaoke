@@ -41,14 +41,15 @@ public class KYMediaService implements Media {
             }
 
             for(Element e : elements) {
-                SongDTO song = new SongDTO();
-                song.no = e.child(1).text();
-                song.title = e.child(2).select("span").get(0).text();
-                song.singer = e.child(3).text();
-                song.music = e.child(4).text();
-                song.lyrics = e.child(6).text();
-
-                list.add(song);
+                list.add(
+                        SongDTO.builder()
+                                .no(e.child(0).html())
+                                .title(e.child(2).select("span").get(0).text())
+                                .singer(e.child(2).text())
+                                .lyrics(e.child(3).text())
+                                .music(e.child(4).text())
+                                .build()
+                );
             }
         }catch (Exception e) {
             System.out.println("파싱 중 오류 발생!");
@@ -87,16 +88,15 @@ public class KYMediaService implements Media {
                 elements.remove(0);
 
                 for(Element e : elements) {
-                    SongDTO song = new SongDTO();
-                    song.no = e.child(1).text();
-                    song.title = e.child(2).select("span").get(0).text();
-                    song.singer = e.child(3).text();
-                    song.music = e.child(4).text();
-                    song.lyrics = e.child(6).text();
-
-                    log.debug("song : [{}]", song);
-
-                    list.add(song);
+                    list.add(
+                            SongDTO.builder()
+                                    .no(e.child(0).html())
+                                    .title(e.child(2).select("span").get(0).text())
+                                    .singer(e.child(2).text())
+                                    .lyrics(e.child(3).text())
+                                    .music(e.child(4).text())
+                                    .build()
+                    );
                 }
 
                 pageNo++;

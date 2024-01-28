@@ -1,7 +1,9 @@
 package com.example.karaoke.dto;
 
+import lombok.Builder;
 import lombok.ToString;
 
+@Builder
 @ToString
 public class SongDTO {
     public String no; // 곡 번호

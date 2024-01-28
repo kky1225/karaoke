@@ -41,14 +41,15 @@ public class TJMediaService implements Media {
             }
 
             for(Element e : elements) {
-                SongDTO song = new SongDTO();
-                song.no = e.child(0).text();
-                song.title = e.child(1).text();
-                song.singer = e.child(2).text();
-                song.lyrics = e.child(3).text();
-                song.music = e.child(4).text();
-
-                list.add(song);
+                list.add(
+                        SongDTO.builder()
+                                .no(e.child(0).html())
+                                .title(e.child(1).text())
+                                .singer(e.child(2).text())
+                                .lyrics(e.child(3).text())
+                                .music(e.child(4).text())
+                                .build()
+                );
             }
         }catch (Exception e) {
             System.out.println("파싱 중 오류 발생!");
@@ -70,26 +71,24 @@ public class TJMediaService implements Media {
             while (true) {
                 Document doc = Jsoup.connect(TJ_MEDIA_URL + option + pageNo++).get();
 
-                Elements elements = doc.select("table.board_type1 > tbody > tr");
-
-                elements.remove(0);
+                Elements elements = doc.select("table.board_type1 > tbody > tr:not(:first-child)");
 
                 if(elements.get(0).childrenSize() == 1) {
                     break;
                 }
 
                 for(Element e : elements) {
-                    SongDTO song = new SongDTO();
-                    song.no = e.child(0).text();
-                    song.title = e.child(1).text();
-                    song.singer = e.child(2).text();
-                    song.lyrics = e.child(3).text();
-                    song.music = e.child(4).text();
-
-                    list.add(song);
+                    list.add(SongDTO.builder()
+                                    .no(e.child(0).html())
+                                    .title(e.child(1).text())
+                                    .singer(e.child(2).text())
+                                    .lyrics(e.child(3).html())
+                                    .music(e.child(4).html())
+                                    .build()
+                    );
                 }
 
-                if(elements.size() < 15) {
+                if(elements.size() < 5000) {
                     break;
                 }
             }
@@ -103,13 +102,15 @@ public class TJMediaService implements Media {
     private StringBuilder getUrlParam(String category, String keyword) {
         StringBuilder option = new StringBuilder("?strType=");
 
+        String type = "";
+
         if(category.equals("title")) {
-            option.append("1");
+            type = "1";
         }else if(category.equals("singer")) {
-            option.append("2");
+            type = "2";
         }
 
-        option.append("&natType=").append("&strText=").append(keyword).append("&strCond=0&searchOrderType=up&searchOrderItem=index_title&intPage=");
+        option.append(type).append("&strSize0").append(type).append("=5000&natType=").append("&strText=").append(keyword).append("&strCond=0&searchOrderType=up&searchOrderItem=index_title&intPage=");
 
         return option;
     }
