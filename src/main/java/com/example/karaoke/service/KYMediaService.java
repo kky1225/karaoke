@@ -1,6 +1,6 @@
 package com.example.karaoke.service;
 
-import com.example.karaoke.dto.SongDTO;
+import com.example.karaoke.model.SearchSongRes;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -18,8 +18,8 @@ public class KYMediaService implements Media {
     final static String KY_MEDIA_URL = "https://kysing.kr/search"; // /?category=2&keyword=노을&s_page=4
 
     @Override
-    public List<SongDTO> searchSong(String category, String keyword, Integer page) {
-        List<SongDTO> list = new ArrayList<>();
+    public List<SearchSongRes> searchSong(String category, String keyword, Integer page) {
+        List<SearchSongRes> list = new ArrayList<>();
 
         try {
             StringBuilder option = new StringBuilder();
@@ -42,7 +42,7 @@ public class KYMediaService implements Media {
 
             for(Element e : elements) {
                 list.add(
-                        SongDTO.builder()
+                        SearchSongRes.builder()
                                 .no(e.child(0).html())
                                 .title(e.child(2).select("span").get(0).text())
                                 .singer(e.child(2).text())
@@ -60,8 +60,8 @@ public class KYMediaService implements Media {
 
     //TODO 시간이 너무 오래 걸리는 문제 (가수, 먼데이키즈 기준 평균 45초)
     @Override
-    public List<SongDTO> searchSong(String category, String keyword) {
-        List<SongDTO> list = new ArrayList<>();
+    public List<SearchSongRes> searchSong(String category, String keyword) {
+        List<SearchSongRes> list = new ArrayList<>();
 
         try {
             StringBuilder option = new StringBuilder();
@@ -89,7 +89,7 @@ public class KYMediaService implements Media {
 
                 for(Element e : elements) {
                     list.add(
-                            SongDTO.builder()
+                            SearchSongRes.builder()
                                     .no(e.child(0).html())
                                     .title(e.child(2).select("span").get(0).text())
                                     .singer(e.child(2).text())

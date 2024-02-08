@@ -1,8 +1,8 @@
-package com.example.karaoke.dto;
+package com.example.karaoke.model;
 
 import jakarta.validation.constraints.NotBlank;
 
-public class TJSearchDTO {
+public class KYSearchDTO {
     @NotBlank
     public String category;
     @NotBlank

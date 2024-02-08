@@ -1,3 +1,6 @@
 logging:
     level:
         root: debug
+
+tj:
+    base-url: https://www.tjmedia.com

@@ -1,7 +1,8 @@
 package com.example.karaoke.controller;
 
-import com.example.karaoke.dto.SongDTO;
-import com.example.karaoke.dto.TJSearchDTO;
+import com.example.karaoke.model.PopularSongRes;
+import com.example.karaoke.model.SearchSongRes;
+import com.example.karaoke.model.TJMedia;
 import com.example.karaoke.service.TJMediaService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -22,14 +23,21 @@ public class TJMediaController {
     TJMediaService tjMediaService;
 
     @GetMapping("searchSong")
-    public List<SongDTO> searchSong(@RequestBody @Valid TJSearchDTO tjSearchDTO) {
-        log.debug("tjSearchDTO : [{}]", tjSearchDTO);
+    public List<SearchSongRes> searchSong(@RequestBody @Valid TJMedia.SearchSong searchSong) {
+        log.debug("searchSong : [{}]", searchSong);
 
-        if(tjSearchDTO.page == null) {
-            return tjMediaService.searchSong(tjSearchDTO.category, tjSearchDTO.keyword);
+        if(searchSong.getPage() == null) {
+            return tjMediaService.searchSong(searchSong.getCategory(), searchSong.getKeyword());
         }
 
-        return tjMediaService.searchSong(tjSearchDTO.category, tjSearchDTO.keyword, tjSearchDTO.page);
+        return tjMediaService.searchSong(searchSong.getCategory(), searchSong.getKeyword(), searchSong.getPage());
+    }
+
+    @GetMapping("popularSong")
+    public List<PopularSongRes> popularSong(@RequestBody @Valid TJMedia.PopularSong popularSong) {
+        log.debug("popularSong : [{}]", popularSong);
+
+        return tjMediaService.popularSong(popularSong);
     }
 
 }
