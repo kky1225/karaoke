@@ -1,7 +1,7 @@
 package com.example.karaoke.service;
 
-import com.example.karaoke.model.PopularSongRes;
-import com.example.karaoke.model.SearchSongRes;
+import com.example.karaoke.model.PopularSong;
+import com.example.karaoke.model.SearchSong;
 import com.example.karaoke.model.TJMedia;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
@@ -16,13 +16,12 @@ import java.util.List;
 
 @Slf4j
 @Service
-public class TJMediaService implements Media {
+public class TJMediaService {
     @Value("${tj.base-url}")
     private String TJ_MEDIA_URL;
 
-    @Override
-    public List<SearchSongRes> searchSong(String category, String keyword, Integer page) {
-        List<SearchSongRes> list = new ArrayList<>();
+    public List<SearchSong> searchSong(String category, String keyword, Integer page) {
+        List<SearchSong> list = new ArrayList<>();
 
         try {
             StringBuilder option = new StringBuilder("?strCond=0");
@@ -46,7 +45,7 @@ public class TJMediaService implements Media {
 
             for(Element e : elements) {
                 list.add(
-                        SearchSongRes.builder()
+                        SearchSong.builder()
                                 .no(e.child(0).html())
                                 .title(e.child(1).text())
                                 .singer(e.child(2).text())
@@ -62,9 +61,8 @@ public class TJMediaService implements Media {
         return list;
     }
 
-    @Override
-    public List<SearchSongRes> searchSong(String category, String keyword) {
-        List<SearchSongRes> list = new ArrayList<>();
+    public List<SearchSong> searchSong(String category, String keyword) {
+        List<SearchSong> list = new ArrayList<>();
 
         try {
             StringBuilder option = getUrlParam(category, keyword);
@@ -81,7 +79,7 @@ public class TJMediaService implements Media {
                 }
 
                 for(Element e : elements) {
-                    list.add(SearchSongRes.builder()
+                    list.add(SearchSong.builder()
                                     .no(e.child(0).html())
                                     .title(e.child(1).text())
                                     .singer(e.child(2).text())
@@ -102,8 +100,8 @@ public class TJMediaService implements Media {
         return list;
     }
 
-    public List<PopularSongRes> popularSong(TJMedia.PopularSong popularSong) {
-        List<PopularSongRes> list = new ArrayList<>();
+    public List<PopularSong> popularSong(TJMedia.PopularSong popularSong) {
+        List<PopularSong> list = new ArrayList<>();
 
         try {
             StringBuilder option = getPopularParam(popularSong);
@@ -113,12 +111,38 @@ public class TJMediaService implements Media {
             Elements elements = doc.select("table.board_type1 > tbody > tr:not(:first-child)");
 
             for(Element e : elements) {
-                list.add(PopularSongRes.builder()
+                list.add(PopularSong.builder()
                         .rank(e.child(0).html())
                         .no(e.child(1).html())
                         .title(e.child(2).text())
                         .singer(e.child(3).html())
                         .build()
+                );
+            }
+        }catch (Exception e) {
+            System.out.println("파싱 중 오류 발생!");
+        }
+
+        return list;
+    }
+
+    public List<SearchSong> newSong() {
+        List<SearchSong> list = new ArrayList<>();
+
+        try {
+            Document doc = Jsoup.connect(TJ_MEDIA_URL + "/tjsong/song_monthNew.asp").get();
+
+            Elements elements = doc.select("table.board_type1 > tbody > tr:not(:first-child)");
+
+            for(Element e : elements) {
+                list.add(
+                  SearchSong.builder()
+                          .no(e.child(0).html())
+                          .title(e.child(1).html())
+                          .singer(e.child(2).html())
+                          .lyrics(e.child(3).html())
+                          .music(e.child(4).html())
+                          .build()
                 );
             }
         }catch (Exception e) {

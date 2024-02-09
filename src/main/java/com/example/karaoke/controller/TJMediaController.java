@@ -1,7 +1,7 @@
 package com.example.karaoke.controller;
 
-import com.example.karaoke.model.PopularSongRes;
-import com.example.karaoke.model.SearchSongRes;
+import com.example.karaoke.model.PopularSong;
+import com.example.karaoke.model.SearchSong;
 import com.example.karaoke.model.TJMedia;
 import com.example.karaoke.service.TJMediaService;
 import jakarta.validation.Valid;
@@ -23,7 +23,7 @@ public class TJMediaController {
     TJMediaService tjMediaService;
 
     @GetMapping("searchSong")
-    public List<SearchSongRes> searchSong(@RequestBody @Valid TJMedia.SearchSong searchSong) {
+    public List<SearchSong> searchSong(@RequestBody @Valid TJMedia.SearchSong searchSong) {
         log.debug("searchSong : [{}]", searchSong);
 
         if(searchSong.getPage() == null) {
@@ -34,10 +34,14 @@ public class TJMediaController {
     }
 
     @GetMapping("popularSong")
-    public List<PopularSongRes> popularSong(@RequestBody @Valid TJMedia.PopularSong popularSong) {
+    public List<PopularSong> popularSong(@RequestBody @Valid TJMedia.PopularSong popularSong) {
         log.debug("popularSong : [{}]", popularSong);
 
         return tjMediaService.popularSong(popularSong);
     }
 
+    @GetMapping("newSong")
+    public List<SearchSong> newSong() {
+        return tjMediaService.newSong();
+    }
 }
