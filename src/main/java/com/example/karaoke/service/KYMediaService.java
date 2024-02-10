@@ -23,15 +23,8 @@ public class KYMediaService {
         List<SearchSong> list = new ArrayList<>();
 
         try {
-            StringBuilder option = new StringBuilder();
-
-            if(category.equals("title")) {
-                option.append("/?category=2");
-            }else if(category.equals("singer")) {
-                option.append("/?category=7");
-            }
-
-            option.append("&keyword=").append(keyword).append("&s_page=").append(page);
+            StringBuilder option = getUrlParam(category, keyword);
+            option.append("&s_page=").append(page);
 
             Document doc = Jsoup.connect(KY_MEDIA_URL + option).get();
 
@@ -55,40 +48,33 @@ public class KYMediaService {
         return list;
     }
 
-    //TODO 시간이 너무 오래 걸리는 문제 (가수, 먼데이키즈 기준 평균 38초)
+    //TODO 시간이 너무 오래 걸리는 문제 (가수, 먼데이키즈 기준 평균 32초)
     public List<SearchSong> searchSong(String category, String keyword) {
         List<SearchSong> list = new ArrayList<>();
 
         try {
-            StringBuilder option = new StringBuilder();
-
-            if(category.equals("title")) {
-                option.append("/?category=2");
-            }else if(category.equals("singer")) {
-                option.append("/?category=7");
-            }
+            StringBuilder option = getUrlParam(category, keyword);
+            option.append("&s_page=");
 
             int pageNo = 1;
-
-            option.append("&keyword=").append(keyword).append("&s_page=");
 
             while (true) {
                 Document doc = Jsoup.connect(KY_MEDIA_URL + option + pageNo++).get();
 
                 Elements elements = doc.select("div.search_daily_chart_wrap > ul.search_chart_list.clear:not(:first-child)");
 
-                if(elements.isEmpty()) {
+                if(elements.get(0).childrenSize() == 1) {
                     break;
                 }
 
                 for(Element e : elements) {
                     list.add(
                             SearchSong.builder()
-                                    .no(e.child(1).html())
-                                    .title(e.child(2).select("span").get(0).text())
-                                    .singer(e.child(3).html())
-                                    .lyrics(e.child(4).html())
-                                    .music(e.child(5).html())
+                                    .no(e.select("li.search_chart_num").html())
+                                    .title(e.select("span.tit").get(0).html())
+                                    .singer(e.select("li.search_chart_sng").html())
+                                    .lyrics(e.select("li.search_chart_cmp").html())
+                                    .music(e.select("li.search_chart_wrt").html())
                                     .build()
                     );
                 }
@@ -102,5 +88,20 @@ public class KYMediaService {
         }
 
         return list;
+    }
+
+    private StringBuilder getUrlParam(String category, String keyword) {
+        StringBuilder option = new StringBuilder();
+
+        String type = "";
+
+        if(category.equals("title")) {
+            type = "2";
+        }else if(category.equals("singer")) {
+            type = "7";
+        }
+
+        return option.append("/?category=").append(type)
+                .append("&keyword=").append(keyword);
     }
 }

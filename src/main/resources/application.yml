@@ -7,3 +7,6 @@ tj:
 
 ky:
     base-url: https://kysing.kr/search
+
+gb:
+    base-url: https://kygabang.com
