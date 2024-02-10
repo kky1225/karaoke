@@ -1,6 +1,6 @@
 package com.example.karaoke.controller;
 
-import com.example.karaoke.model.KYSearchDTO;
+import com.example.karaoke.model.KYMedia;
 import com.example.karaoke.model.SearchSong;
 import com.example.karaoke.service.KYMediaService;
 import jakarta.validation.Valid;
@@ -22,13 +22,13 @@ public class KYMediaController {
     KYMediaService kyMediaService;
 
     @GetMapping("searchSong")
-    public List<SearchSong> searchSong(@RequestBody @Valid KYSearchDTO kySearchDTO) {
-        log.debug("kySearchDTO : [{}]", kySearchDTO);
+    public List<SearchSong> searchSong(@RequestBody @Valid KYMedia.searchSong searchSong) {
+        log.debug("KYMedia.searchSong : [{}]", searchSong);
 
-        if(kySearchDTO.page == null) {
-            return kyMediaService.searchSong(kySearchDTO.category, kySearchDTO.keyword);
+        if(searchSong.getPage() == null) {
+            return kyMediaService.searchSong(searchSong.getCategory(), searchSong.getKeyword());
         }
 
-        return kyMediaService.searchSong(kySearchDTO.category, kySearchDTO.keyword, kySearchDTO.page);
+        return kyMediaService.searchSong(searchSong.getCategory(), searchSong.getKeyword(), searchSong.getPage());
     }
 }

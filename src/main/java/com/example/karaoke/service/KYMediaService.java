@@ -6,6 +6,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -15,7 +16,8 @@ import java.util.List;
 @Service
 public class KYMediaService {
 
-    final static String KY_MEDIA_URL = "https://kysing.kr/search"; // /?category=2&keyword=노을&s_page=4
+    @Value("${ky.base-url}")
+    private String KY_MEDIA_URL;
 
     public List<SearchSong> searchSong(String category, String keyword, Integer page) {
         List<SearchSong> list = new ArrayList<>();
@@ -33,20 +35,16 @@ public class KYMediaService {
 
             Document doc = Jsoup.connect(KY_MEDIA_URL + option).get();
 
-            Elements elements = doc.select("div.search_daily_chart_wrap > ul.search_chart_list.clear");
-
-            if(!elements.isEmpty()) {
-                elements.remove(0);
-            }
+            Elements elements = doc.select("div.search_daily_chart_wrap > ul.search_chart_list.clear:not(:first-child)");
 
             for(Element e : elements) {
                 list.add(
                         SearchSong.builder()
-                                .no(e.child(0).html())
+                                .no(e.child(1).html())
                                 .title(e.child(2).select("span").get(0).text())
-                                .singer(e.child(2).text())
-                                .lyrics(e.child(3).text())
-                                .music(e.child(4).text())
+                                .singer(e.child(3).html())
+                                .lyrics(e.child(4).html())
+                                .music(e.child(5).html())
                                 .build()
                 );
             }
@@ -57,7 +55,7 @@ public class KYMediaService {
         return list;
     }
 
-    //TODO 시간이 너무 오래 걸리는 문제 (가수, 먼데이키즈 기준 평균 45초)
+    //TODO 시간이 너무 오래 걸리는 문제 (가수, 먼데이키즈 기준 평균 38초)
     public List<SearchSong> searchSong(String category, String keyword) {
         List<SearchSong> list = new ArrayList<>();
 
@@ -75,29 +73,29 @@ public class KYMediaService {
             option.append("&keyword=").append(keyword).append("&s_page=");
 
             while (true) {
-                Document doc = Jsoup.connect(KY_MEDIA_URL + option + pageNo).get();
+                Document doc = Jsoup.connect(KY_MEDIA_URL + option + pageNo++).get();
 
-                Elements elements = doc.select("div.search_daily_chart_wrap > ul.search_chart_list.clear");
+                Elements elements = doc.select("div.search_daily_chart_wrap > ul.search_chart_list.clear:not(:first-child)");
 
                 if(elements.isEmpty()) {
                     break;
                 }
 
-                elements.remove(0);
-
                 for(Element e : elements) {
                     list.add(
                             SearchSong.builder()
-                                    .no(e.child(0).html())
+                                    .no(e.child(1).html())
                                     .title(e.child(2).select("span").get(0).text())
-                                    .singer(e.child(2).text())
-                                    .lyrics(e.child(3).text())
-                                    .music(e.child(4).text())
+                                    .singer(e.child(3).html())
+                                    .lyrics(e.child(4).html())
+                                    .music(e.child(5).html())
                                     .build()
                     );
                 }
 
-                pageNo++;
+                if(elements.size() < 15) {
+                    break;
+                }
             }
         }catch (Exception e) {
             System.out.println("파싱 중 오류 발생!");

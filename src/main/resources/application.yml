@@ -4,3 +4,6 @@ logging:
 
 tj:
     base-url: https://www.tjmedia.com
+
+ky:
+    base-url: https://kysing.kr/search
