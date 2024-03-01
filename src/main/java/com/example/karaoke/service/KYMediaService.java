@@ -20,6 +20,9 @@ public class KYMediaService {
     @Value("${ky.base-url}")
     private String KY_MEDIA_URL;
 
+    @Value("${gb.base-url}")
+    private String GB_URL;
+
     public List<SearchSong> searchSong(String category, String keyword, Integer page) {
         List<SearchSong> list = new ArrayList<>();
 
@@ -90,34 +93,6 @@ public class KYMediaService {
                     System.out.println("파싱 중 오류 발생!");
                 }
             });
-
-            /*
-            while (true) {
-                Document doc = Jsoup.connect(KY_MEDIA_URL + option + pageNo++).get();
-
-                Elements elements = doc.select("div.search_daily_chart_wrap > ul.search_chart_list.clear:not(:first-child)");
-
-                if(elements.get(0).childrenSize() == 1) {
-                    break;
-                }
-
-                for(Element e : elements) {
-                    list.add(
-                            SearchSong.builder()
-                                    .no(e.select("li.search_chart_num").html())
-                                    .title(e.select("span.tit").get(0).html())
-                                    .singer(e.select("li.search_chart_sng").html())
-                                    .lyrics(e.select("li.search_chart_cmp").html())
-                                    .music(e.select("li.search_chart_wrt").html())
-                                    .build()
-                    );
-                }
-
-                if(elements.size() < 15) {
-                    break;
-                }
-            }
-             */
         }catch (Exception e) {
             System.out.println("파싱 중 오류 발생!");
         }
@@ -128,6 +103,51 @@ public class KYMediaService {
                 return o1.getTitle().compareTo(o2.getTitle());
             }
         }).toList();
+    }
+
+    //TODO 시간이 너무 오래 걸리는 문제 (가수, 먼데이키즈 기준 평균 8초)
+    public List<SearchSong> searchSongKB(String category, String keyword) {
+        List<SearchSong> list = new ArrayList<>();
+
+        try {
+            StringBuilder option = getUrlParam2(category, keyword);
+            option.append("&page=");
+
+            int pageNo = 1;
+
+            while (true) {
+                Document doc = Jsoup.connect(GB_URL + "/chart/search_list_more.php" + option + pageNo++).get();
+
+                Elements elements = doc.select("tbody > tr");
+
+                if(elements.get(0).childrenSize() == 1) {
+                    break;
+                }
+
+                for(Element e : elements) {
+                    String str = e.select("td.search_col03").html();
+                    String[] strArr = str.split("/");
+
+                    list.add(
+                            SearchSong.builder()
+                                    .no(e.select("td.search_col02").html())
+                                    .title(strArr[0].trim())
+                                    .singer(strArr[1].trim())
+                                    .lyrics(e.select("td.tdc").get(0).html())
+                                    .music(e.select("td.tdc").get(1).html())
+                                    .build()
+                    );
+                }
+
+                if(elements.size() < 20) {
+                    break;
+                }
+            }
+        }catch (Exception e) {
+            System.out.println("파싱 중 오류 발생!");
+        }
+
+        return list;
     }
 
     private StringBuilder getUrlParam(String category, String keyword) {
@@ -167,6 +187,22 @@ public class KYMediaService {
         }
 
         return totalPage;
+    }
+
+    private StringBuilder getUrlParam2(String category, String keyword) {
+        StringBuilder option = new StringBuilder();
+
+        String type = "";
+
+        if(category.equals("title")) {
+            type = "2";
+        }else if(category.equals("singer")) {
+            type = "7";
+        }
+
+        return option.append("?&gb=").append(type)
+                .append("&val=").append(keyword)
+                .append("&mode=SongSearch");
     }
 }
 
