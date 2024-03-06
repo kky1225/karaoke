@@ -28,6 +28,12 @@ dependencies {
 
     //Validation
     implementation("org.springframework.boot:spring-boot-starter-validation")
+
+    //MySQL
+    implementation("mysql:mysql-connector-java:8.0.32")
+
+    //mybatis
+    implementation("org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3")
 }
 
 tasks.withType<Test> {

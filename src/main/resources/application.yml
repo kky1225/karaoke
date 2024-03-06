@@ -2,6 +2,13 @@ logging:
     level:
         root: debug
 
+spring:
+    datasource:
+        url: jdbc:mysql://localhost:3306/karaoke?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
+        username: karaoke
+        password: karaoke
+        driver-class-name: com.mysql.cj.jdbc.Driver
+
 tj:
     base-url: https://www.tjmedia.com
 
