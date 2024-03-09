@@ -1,6 +1,7 @@
 package com.example.karaoke.model;
 
 import jakarta.validation.constraints.NotBlank;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -19,7 +20,7 @@ public class TJMedia {
     }
 
     @Getter
-    @Setter
+    @Builder
     @ToString
     public static class PopularSong {
         private String category;

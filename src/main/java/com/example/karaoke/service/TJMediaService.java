@@ -1,5 +1,6 @@
 package com.example.karaoke.service;
 
+import com.example.karaoke.mapper.TJMediaMapper;
 import com.example.karaoke.model.PopularSong;
 import com.example.karaoke.model.SearchSong;
 import com.example.karaoke.model.TJMedia;
@@ -8,7 +9,9 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -19,6 +22,9 @@ import java.util.List;
 public class TJMediaService {
     @Value("${tj.base-url}")
     private String TJ_MEDIA_URL;
+
+    @Autowired
+    TJMediaMapper tjMediaMapper;
 
     public List<SearchSong> searchSong(String category, String keyword, Integer page) {
         List<SearchSong> list = new ArrayList<>();
@@ -100,6 +106,10 @@ public class TJMediaService {
         return list;
     }
 
+    public List<SearchSong> newSong() {
+        return tjMediaMapper.getNewSong();
+    }
+
     public List<PopularSong> popularSong(TJMedia.PopularSong popularSong) {
         List<PopularSong> list = new ArrayList<>();
 
@@ -117,32 +127,6 @@ public class TJMediaService {
                         .title(e.child(2).text())
                         .singer(e.child(3).html())
                         .build()
-                );
-            }
-        }catch (Exception e) {
-            System.out.println("파싱 중 오류 발생!");
-        }
-
-        return list;
-    }
-
-    public List<SearchSong> newSong() {
-        List<SearchSong> list = new ArrayList<>();
-
-        try {
-            Document doc = Jsoup.connect(TJ_MEDIA_URL + "/tjsong/song_monthNew.asp").get();
-
-            Elements elements = doc.select("table.board_type1 > tbody > tr:not(:first-child)");
-
-            for(Element e : elements) {
-                list.add(
-                  SearchSong.builder()
-                          .no(e.child(0).html())
-                          .title(e.child(1).html())
-                          .singer(e.child(2).html())
-                          .lyrics(e.child(3).html())
-                          .music(e.child(4).html())
-                          .build()
                 );
             }
         }catch (Exception e) {
@@ -180,4 +164,49 @@ public class TJMediaService {
                 .append("&EMM=").append(popularSong.getEndMonth());
     }
 
+    @Scheduled(cron = "10 0 0 * * *" )
+    public void newSongScheduling() {
+        List<SearchSong> list = new ArrayList<>();
+
+        try {
+            Document doc = Jsoup.connect(TJ_MEDIA_URL + "/tjsong/song_monthNew.asp").get();
+
+            Elements elements = doc.select("table.board_type1 > tbody > tr:not(:first-child)");
+
+            for(Element e : elements) {
+                list.add(
+                        SearchSong.builder()
+                                .no(e.child(0).html())
+                                .title(e.child(1).html())
+                                .singer(e.child(2).html())
+                                .lyrics(e.child(3).html())
+                                .music(e.child(4).html())
+                                .build()
+                );
+            }
+
+            List<String> songNoList = tjMediaMapper.getNewSong().stream().map(SearchSong::getNo).toList();
+
+            if(!songNoList.isEmpty()) {
+                list = list.stream().filter(song -> !songNoList.contains(song.getNo())).toList();
+            }
+
+            for(SearchSong song : list) {
+                tjMediaMapper.insertNewSong(song);
+            }
+        }catch (Exception e) {
+            System.out.println("TJ Media new song Error");
+        }
+    }
+
+    @Scheduled(cron = "0 0 0 1 * *" )
+    public void newSongClear() {
+        List<SearchSong> list = tjMediaMapper.getNewSong();
+
+        for(SearchSong song : list) {
+            tjMediaMapper.insertSong(song);
+        }
+
+        tjMediaMapper.deleteNewSong();
+    }
 }
