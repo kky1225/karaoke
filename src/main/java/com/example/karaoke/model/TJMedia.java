@@ -1,6 +1,7 @@
 package com.example.karaoke.model;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,11 +23,12 @@ public class TJMedia {
     @Getter
     @Builder
     @ToString
-    public static class PopularSong {
+    public static class SearchPopularSong {
+        @NotBlank
         private String category;
-        private String startYear;
-        private String startMonth;
-        private String endYear;
-        private String endMonth;
+        @NotBlank
+        private String year;
+        @NotBlank
+        private String month;
     }
 }

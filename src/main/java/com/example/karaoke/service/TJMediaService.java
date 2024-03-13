@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -110,30 +111,8 @@ public class TJMediaService {
         return tjMediaMapper.getNewSong();
     }
 
-    public List<PopularSong> popularSong(TJMedia.PopularSong popularSong) {
-        List<PopularSong> list = new ArrayList<>();
-
-        try {
-            StringBuilder option = getPopularParam(popularSong);
-
-            Document doc = Jsoup.connect(TJ_MEDIA_URL + "/tjsong/song_monthPopular.asp" + option).get();
-
-            Elements elements = doc.select("table.board_type1 > tbody > tr:not(:first-child)");
-
-            for(Element e : elements) {
-                list.add(PopularSong.builder()
-                        .rank(e.child(0).html())
-                        .no(e.child(1).html())
-                        .title(e.child(2).text())
-                        .singer(e.child(3).html())
-                        .build()
-                );
-            }
-        }catch (Exception e) {
-            System.out.println("파싱 중 오류 발생!");
-        }
-
-        return list;
+    public List<PopularSong> popularSong(TJMedia.SearchPopularSong searchPopularSong) {
+        return tjMediaMapper.getPopularSong(searchPopularSong);
     }
 
     private StringBuilder getUrlParam(String category, String keyword) {
@@ -152,16 +131,6 @@ public class TJMediaService {
                 .append("&natType=")
                 .append("&strText=").append(keyword)
                 .append("&strCond=0&searchOrderType=up&searchOrderItem=index_title&intPage=");
-    }
-
-    private StringBuilder getPopularParam(TJMedia.PopularSong popularSong) {
-        StringBuilder option = new StringBuilder();
-
-        return option.append("?strType=").append(popularSong.getCategory())
-                .append("&SYY=").append(popularSong.getStartYear())
-                .append("&SMM=").append(popularSong.getStartMonth())
-                .append("&EYY=").append(popularSong.getEndYear())
-                .append("&EMM=").append(popularSong.getEndMonth());
     }
 
     @Scheduled(cron = "10 0 0 * * *" )
@@ -200,6 +169,11 @@ public class TJMediaService {
     }
 
     @Scheduled(cron = "0 0 0 1 * *" )
+    public void SchedulingMonth() {
+        newSongClear();
+        popularSongClear();
+    }
+
     public void newSongClear() {
         List<SearchSong> list = tjMediaMapper.getNewSong();
 
@@ -208,5 +182,83 @@ public class TJMediaService {
         }
 
         tjMediaMapper.deleteNewSong();
+    }
+
+    public void popularSongClear() {
+        deleteOldPopularSong();
+        insertNewPopularSong();
+    }
+
+    public void deleteOldPopularSong() {
+        LocalDate now = LocalDate.now();
+
+        int year = now.getYear();
+        int month = now.getMonthValue();
+
+        tjMediaMapper.deletePopularSong(String.valueOf(year - 2), month < 10 ? "0" + month : String.valueOf(month));
+    }
+
+    public void insertNewPopularSong() {
+        LocalDate now = LocalDate.now();
+
+        String year = String.valueOf(now.getYear());
+        String month = now.getMonthValue() < 10 ? "0" + now.getMonthValue() : String.valueOf(now.getMonthValue());
+
+        List<PopularSong> popularList = new ArrayList<>();
+
+        List<String> categoryList = new ArrayList();
+        categoryList.add("가요");
+        categoryList.add("POP");
+        categoryList.add("J-POP");
+
+        try {
+            for(String category : categoryList) {
+                StringBuilder option = getPopularParam(category, year, month);
+
+                Document doc = Jsoup.connect(TJ_MEDIA_URL + "/tjsong/song_monthPopular.asp" + option).get();
+
+                Elements elements = doc.select("table.board_type1 > tbody > tr:not(:first-child)");
+
+                for(Element e : elements) {
+                    popularList.add(PopularSong.builder()
+                            .ranking(e.child(0).html())
+                            .no(e.child(1).html())
+                            .title(e.child(2).text())
+                            .singer(e.child(3).html())
+                            .category(category)
+                            .year(year)
+                            .month(month)
+                            .build()
+                    );
+                }
+            }
+        }catch (Exception e) {
+            System.out.println("파싱 중 오류 발생!");
+        }
+
+        for(PopularSong song : popularList) {
+            tjMediaMapper.insertPopularSong(song);
+        }
+    }
+
+    private StringBuilder getPopularParam(String category, String year, String month) {
+        StringBuilder option = new StringBuilder();
+
+        switch (category) {
+            case "가요":
+                option.append("?strType=1");
+                break;
+            case "POP":
+                option.append("?strType=2");
+                break;
+            case "J-POP":
+                option.append("?strType=3");
+                break;
+        }
+
+        return option.append("&SYY=").append(year)
+                .append("&SMM=").append(month)
+                .append("&EYY=").append(year)
+                .append("&EMM=").append(month);
     }
 }

@@ -34,7 +34,7 @@ public class TJMediaController {
     }
 
     @GetMapping("popularSong")
-    public List<PopularSong> popularSong(@RequestBody @Valid TJMedia.PopularSong popularSong) {
+    public List<PopularSong> popularSong(@RequestBody @Valid TJMedia.SearchPopularSong popularSong) {
         log.debug("popularSong : [{}]", popularSong);
 
         return tjMediaService.popularSong(popularSong);
