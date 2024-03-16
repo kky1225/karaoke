@@ -1,7 +1,7 @@
 package com.example.karaoke.controller;
 
 import com.example.karaoke.model.KYMedia;
-import com.example.karaoke.model.SearchSong;
+import com.example.karaoke.model.Song;
 import com.example.karaoke.service.KYMediaService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,7 @@ public class KYMediaController {
     KYMediaService kyMediaService;
 
     @GetMapping("searchSong")
-    public List<SearchSong> searchSong(@RequestBody @Valid KYMedia.searchSong searchSong) {
+    public List<Song> searchSong(@RequestBody @Valid KYMedia.searchSong searchSong) {
         log.debug("KYMedia.searchSong : [{}]", searchSong);
 
         if(searchSong.getPage() == null) {

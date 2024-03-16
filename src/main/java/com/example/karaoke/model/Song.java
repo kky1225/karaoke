@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Builder
 @Data
-public class SearchSong {
+public class Song {
     private String no; // 곡 번호
     private String title; // 곡 제목
     private String singer; // 가수

@@ -1,7 +1,7 @@
 package com.example.karaoke.controller;
 
 import com.example.karaoke.model.PopularSong;
-import com.example.karaoke.model.SearchSong;
+import com.example.karaoke.model.Song;
 import com.example.karaoke.model.TJMedia;
 import com.example.karaoke.service.TJMediaService;
 import jakarta.validation.Valid;
@@ -23,7 +23,7 @@ public class TJMediaController {
     TJMediaService tjMediaService;
 
     @GetMapping("searchSong")
-    public List<SearchSong> searchSong(@RequestBody @Valid TJMedia.SearchSong searchSong) {
+    public List<Song> searchSong(@RequestBody @Valid TJMedia.SearchSong searchSong) {
         log.debug("searchSong : [{}]", searchSong);
 
         if(searchSong.getPage() == null) {
@@ -41,7 +41,7 @@ public class TJMediaController {
     }
 
     @GetMapping("newSong")
-    public List<SearchSong> newSong() {
+    public List<Song> newSong() {
         return tjMediaService.newSong();
     }
 }

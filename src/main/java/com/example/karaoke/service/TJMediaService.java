@@ -2,7 +2,7 @@ package com.example.karaoke.service;
 
 import com.example.karaoke.mapper.TJMediaMapper;
 import com.example.karaoke.model.PopularSong;
-import com.example.karaoke.model.SearchSong;
+import com.example.karaoke.model.Song;
 import com.example.karaoke.model.TJMedia;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -20,6 +21,7 @@ import java.util.List;
 
 @Slf4j
 @Service
+@Transactional
 public class TJMediaService {
     @Value("${tj.base-url}")
     private String TJ_MEDIA_URL;
@@ -27,8 +29,8 @@ public class TJMediaService {
     @Autowired
     TJMediaMapper tjMediaMapper;
 
-    public List<SearchSong> searchSong(String category, String keyword, Integer page) {
-        List<SearchSong> list = new ArrayList<>();
+    public List<Song> searchSong(String category, String keyword, Integer page) {
+        List<Song> list = new ArrayList<>();
 
         try {
             StringBuilder option = new StringBuilder("?strCond=0");
@@ -52,7 +54,7 @@ public class TJMediaService {
 
             for(Element e : elements) {
                 list.add(
-                        SearchSong.builder()
+                        Song.builder()
                                 .no(e.child(0).html())
                                 .title(e.child(1).text())
                                 .singer(e.child(2).text())
@@ -62,14 +64,14 @@ public class TJMediaService {
                 );
             }
         }catch (Exception e) {
-            System.out.println("파싱 중 오류 발생!");
+            log.debug("파싱 중 오류 발생!");
         }
 
         return list;
     }
 
-    public List<SearchSong> searchSong(String category, String keyword) {
-        List<SearchSong> list = new ArrayList<>();
+    public List<Song> searchSong(String category, String keyword) {
+        List<Song> list = new ArrayList<>();
 
         try {
             StringBuilder option = getUrlParam(category, keyword);
@@ -86,7 +88,7 @@ public class TJMediaService {
                 }
 
                 for(Element e : elements) {
-                    list.add(SearchSong.builder()
+                    list.add(Song.builder()
                                     .no(e.child(0).html())
                                     .title(e.child(1).text())
                                     .singer(e.child(2).text())
@@ -101,13 +103,13 @@ public class TJMediaService {
                 }
             }
         }catch (Exception e) {
-            System.out.println("파싱 중 오류 발생!");
+            log.debug("파싱 중 오류 발생!");
         }
 
         return list;
     }
 
-    public List<SearchSong> newSong() {
+    public List<Song> newSong() {
         return tjMediaMapper.getNewSong();
     }
 
@@ -134,8 +136,8 @@ public class TJMediaService {
     }
 
     @Scheduled(cron = "10 0 0 * * *" )
-    public void newSongScheduling() {
-        List<SearchSong> list = new ArrayList<>();
+    public void daySchedule() {
+        List<Song> list = new ArrayList<>();
 
         try {
             Document doc = Jsoup.connect(TJ_MEDIA_URL + "/tjsong/song_monthNew.asp").get();
@@ -144,7 +146,7 @@ public class TJMediaService {
 
             for(Element e : elements) {
                 list.add(
-                        SearchSong.builder()
+                        Song.builder()
                                 .no(e.child(0).html())
                                 .title(e.child(1).html())
                                 .singer(e.child(2).html())
@@ -154,34 +156,39 @@ public class TJMediaService {
                 );
             }
 
-            List<String> songNoList = tjMediaMapper.getNewSong().stream().map(SearchSong::getNo).toList();
+            // 기존 신곡 목록에서 곡 번호를 추출
+            List<String> songNoList = tjMediaMapper.getNewSong().stream().map(Song::getNo).toList();
 
+            // 기존에 가지고 있지 않은 곡 정보만 추출
             if(!songNoList.isEmpty()) {
                 list = list.stream().filter(song -> !songNoList.contains(song.getNo())).toList();
             }
 
-            for(SearchSong song : list) {
+            for(Song song : list) {
+                // 이달의 신곡 DB에 저장
                 tjMediaMapper.insertNewSong(song);
+                // 전체 곡 DB에 저장
+                tjMediaMapper.insertSong(song);
             }
         }catch (Exception e) {
-            System.out.println("TJ Media new song Error");
+            log.debug("TJ Media daySchedule Error");
+
+            throw new RuntimeException(e);
         }
     }
 
     @Scheduled(cron = "0 0 0 1 * *" )
-    public void SchedulingMonth() {
-        newSongClear();
-        popularSongClear();
-    }
+    public void monthSchedule() {
+        try {
+            // 이달의 신곡 DB에서 삭제
+            tjMediaMapper.deleteNewSong();
 
-    public void newSongClear() {
-        List<SearchSong> list = tjMediaMapper.getNewSong();
+            popularSongClear();
+        }catch (Exception e) {
+            log.debug("TJ Media monthSchedule Error");
 
-        for(SearchSong song : list) {
-            tjMediaMapper.insertSong(song);
+            throw new RuntimeException(e);
         }
-
-        tjMediaMapper.deleteNewSong();
     }
 
     public void popularSongClear() {
@@ -195,6 +202,7 @@ public class TJMediaService {
         int year = now.getYear();
         int month = now.getMonthValue();
 
+        // 현재 날짜 기준 2년 전의 노래방 인기곡 삭제
         tjMediaMapper.deletePopularSong(String.valueOf(year - 2), month < 10 ? "0" + month : String.valueOf(month));
     }
 
@@ -232,12 +240,15 @@ public class TJMediaService {
                     );
                 }
             }
-        }catch (Exception e) {
-            System.out.println("파싱 중 오류 발생!");
-        }
 
-        for(PopularSong song : popularList) {
-            tjMediaMapper.insertPopularSong(song);
+            // 노래방 인기곡 DB에 저장
+            for(PopularSong song : popularList) {
+                tjMediaMapper.insertPopularSong(song);
+            }
+        }catch (Exception e) {
+            log.debug("TJ Media insertNewPopularSong Error");
+
+            throw new RuntimeException(e);
         }
     }
 

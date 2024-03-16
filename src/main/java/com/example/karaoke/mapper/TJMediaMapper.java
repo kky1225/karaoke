@@ -1,7 +1,7 @@
 package com.example.karaoke.mapper;
 
 import com.example.karaoke.model.PopularSong;
-import com.example.karaoke.model.SearchSong;
+import com.example.karaoke.model.Song;
 import com.example.karaoke.model.TJMedia;
 import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
@@ -17,13 +17,13 @@ public interface TJMediaMapper {
             "SELECT *",
             "FROM tj_new_song"
     })
-    List<SearchSong> getNewSong();
+    List<Song> getNewSong();
 
     @Insert({
             "INSERT INTO tj_new_song(no, title, singer, lyrics, music)",
             "VALUES (#{no}, #{title}, #{singer}, #{lyrics}, #{music})"
     })
-    void insertNewSong(SearchSong song);
+    void insertNewSong(Song song);
 
     @Delete({
             "DELETE FROM tj_new_song"
@@ -34,7 +34,7 @@ public interface TJMediaMapper {
             "INSERT INTO tj_song(no, title, singer, lyrics, music)",
             "VALUES (#{no}, #{title}, #{singer}, #{lyrics}, #{music})"
     })
-    void insertSong(SearchSong song);
+    void insertSong(Song song);
 
     @Select({
             "SELECT *",
