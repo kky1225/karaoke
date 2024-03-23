@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Slf4j
@@ -107,6 +108,51 @@ public class TJMediaService {
         }
 
         return list;
+    }
+
+    public void totalSong() {
+        StringBuilder option = new StringBuilder("?strType=16&natType=&strCond=0&strSize05=100000&strText=");
+
+        List<Song> list = new ArrayList<>();
+        List<String> noList = new ArrayList<>();
+
+        for(int i=1;i<=9;i++) {
+            log.debug("{}", TJ_MEDIA_URL + "/tjsong/song_search_list.asp" + option + i);
+
+            try {
+                Document doc = Jsoup.connect(TJ_MEDIA_URL + "/tjsong/song_search_list.asp" + option + i).timeout(300000).maxBodySize(0).get();
+
+                Elements elements = doc.select("table.board_type1 > tbody > tr:not(:first-child)");
+
+                for(Element e : elements) {
+                    log.debug("{}", e);
+
+                    if(!noList.contains(e.child(0).text())) {
+                        noList.add(e.child(0).text());
+
+                        list.add(Song.builder()
+                                .no(e.child(0).text())
+                                .title(e.child(1).text())
+                                .singer(e.child(2).text())
+                                .lyrics(e.child(3).text())
+                                .music(e.child(4).text())
+                                .build()
+                        );
+                    }
+                }
+
+            }catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        log.debug("list의 총 개수 : {}", list.size());
+
+        list = list.stream().sorted(Comparator.comparing(Song::getNo)).toList();
+
+        for(Song song : list) {
+            tjMediaMapper.insertSong(song);
+        }
     }
 
     public List<Song> newSong() {

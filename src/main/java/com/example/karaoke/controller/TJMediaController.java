@@ -33,6 +33,11 @@ public class TJMediaController {
         return tjMediaService.searchSong(searchSong.getCategory(), searchSong.getKeyword(), searchSong.getPage());
     }
 
+    @GetMapping("totalSong")
+    public void totalSong() {
+        tjMediaService.totalSong();
+    }
+
     @GetMapping("popularSong")
     public List<PopularSong> popularSong(@RequestBody @Valid TJMedia.SearchPopularSong popularSong) {
         log.debug("popularSong : [{}]", popularSong);
