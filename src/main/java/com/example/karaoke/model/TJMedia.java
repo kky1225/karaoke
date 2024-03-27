@@ -16,11 +16,11 @@ public class TJMedia {
         private String category;
         @NotBlank
         private String keyword;
-        private Integer page;
+        private String title;
     }
 
     @Getter
-    @Builder
+    @Setter
     @ToString
     public static class SearchPopularSong {
         @NotBlank

@@ -30,6 +30,18 @@ public interface TJMediaMapper {
     })
     void deleteNewSong();
 
+    @Select({
+            "<script>",
+            "SELECT *",
+            "FROM tj_song",
+            "<if test='category != null'>",
+            "   WHERE ${category} = #{keyword}",
+            "</if>",
+            "ORDER BY no",
+            "</script>"
+    })
+    List<Song> getSong(TJMedia.SearchSong searchSong);
+
     @Insert({
             "INSERT INTO tj_song(no, title, singer, lyrics, music)",
             "VALUES (#{no}, #{title}, #{singer}, #{lyrics}, #{music})"

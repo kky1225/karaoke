@@ -30,84 +30,8 @@ public class TJMediaService {
     @Autowired
     TJMediaMapper tjMediaMapper;
 
-    public List<Song> searchSong(String category, String keyword, Integer page) {
-        List<Song> list = new ArrayList<>();
-
-        try {
-            StringBuilder option = new StringBuilder("?strCond=0");
-
-            if(category.equals("title")) {
-                option.append("&strType=1");
-            }else if(category.equals("singer")) {
-                option.append("&strType=2");
-            }
-
-            option.append("&strText=").append(keyword)
-                    .append("&intPage=").append(page);
-
-            Document doc = Jsoup.connect(TJ_MEDIA_URL + "/tjsong/song_search_list.asp" + option).get();
-
-            Elements elements = doc.select("table.board_type1 > tbody > tr");
-
-            if(!elements.isEmpty()) {
-                elements.remove(0);
-            }
-
-            for(Element e : elements) {
-                list.add(
-                        Song.builder()
-                                .no(e.child(0).html())
-                                .title(e.child(1).text())
-                                .singer(e.child(2).text())
-                                .lyrics(e.child(3).text())
-                                .music(e.child(4).text())
-                                .build()
-                );
-            }
-        }catch (Exception e) {
-            log.debug("파싱 중 오류 발생!");
-        }
-
-        return list;
-    }
-
-    public List<Song> searchSong(String category, String keyword) {
-        List<Song> list = new ArrayList<>();
-
-        try {
-            StringBuilder option = getUrlParam(category, keyword);
-
-            int pageNo = 1;
-
-            while (true) {
-                Document doc = Jsoup.connect(TJ_MEDIA_URL + "/tjsong/song_search_list.asp" + option + pageNo++).get();
-
-                Elements elements = doc.select("table.board_type1 > tbody > tr:not(:first-child)");
-
-                if(elements.get(0).childrenSize() == 1) {
-                    break;
-                }
-
-                for(Element e : elements) {
-                    list.add(Song.builder()
-                                    .no(e.child(0).html())
-                                    .title(e.child(1).text())
-                                    .singer(e.child(2).text())
-                                    .lyrics(e.child(3).html())
-                                    .music(e.child(4).html())
-                                    .build()
-                    );
-                }
-
-                if(elements.size() < 5000) {
-                    break;
-                }
-            }
-        }catch (Exception e) {
-            log.debug("파싱 중 오류 발생!");
-        }
-
-        return list;
+    public List<Song> searchSong(TJMedia.SearchSong searchSong) {
+        return tjMediaMapper.getSong(searchSong);
     }
 
     public void totalSong() {

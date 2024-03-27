@@ -26,11 +26,7 @@ public class TJMediaController {
     public List<Song> searchSong(@RequestBody @Valid TJMedia.SearchSong searchSong) {
         log.debug("searchSong : [{}]", searchSong);
 
-        if(searchSong.getPage() == null) {
-            return tjMediaService.searchSong(searchSong.getCategory(), searchSong.getKeyword());
-        }
-
-        return tjMediaService.searchSong(searchSong.getCategory(), searchSong.getKeyword(), searchSong.getPage());
+        return tjMediaService.searchSong(searchSong);
     }
 
     @GetMapping("totalSong")
